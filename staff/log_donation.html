@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Donation — IBBMS Lab Staff</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div><h1>IBBMS</h1><span>Lab Staff</span></div>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="register_donor.html">Register Donor</a>
+        <a href="log_donation.html" class="active">Log Donation</a>
+        <a href="manage_requests.html">Requests</a>
+    </div>
+    <div class="nav-right">
+        <span class="live-clock" style="font-size:.78rem;color:var(--text-muted)"></span>
+        <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
+        <div class="nav-user">
+            <div class="nav-avatar" id="navAvatar">ST</div>
+            <div>
+                <div id="navUsername" style="font-size:.8rem;font-weight:600">labstaff</div>
+                <div class="role-tag" id="navRole">Staff</div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="logout(event)">Logout</button>
+    </div>
+</nav>
+
+<main class="page" style="max-width: 700px;">
+    <div class="page-header">
+        <div>
+            <h2>Log Blood Donation</h2>
+            <p>Verify donor identity via Donor Card ID and increment central inventory.</p>
+        </div>
+        <a href="register_donor.html" class="btn btn-secondary btn-sm">+ Register New Donor</a>
+    </div>
+
+    <!-- Step 1: Donor Card Lookup Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Step 1: Verify Donor Card</h3>
+        </div>
+        <div class="card-body">
+            <form id="lookupForm" onsubmit="handleDonorLookup(event)">
+                <div class="form-group">
+                    <label class="form-label" for="cardInput">Donor Card Number <span class="req">*</span></label>
+                    <div style="display:flex;gap:.5rem;">
+                        <input type="text" id="cardInput" class="form-input" placeholder="e.g. DONOR-10482" required autofocus>
+                        <button type="submit" id="lookupBtn" class="btn btn-primary" style="flex-shrink:0;">
+                            Verify Card
+                        </button>
+                    </div>
+                    <small style="color:var(--text-muted);font-size:.75rem;margin-top:.35rem;display:block;">
+                        Enter the 11-character code issued during registration.
+                    </small>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Step 2: Donor Info & Donation Intake (Hidden until verified) -->
+    <div id="intakeCard" class="card" style="display:none;">
+        <div class="card-header">
+            <h3>Step 2: Record Whole Blood Intake</h3>
+            <span class="badge badge-green" id="verifiedBadge">Verified Donor</span>
+        </div>
+        <div class="card-body">
+            <!-- Donor Summary Details Box -->
+            <div style="background:var(--surface-alt);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:1.25rem;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;">
+                    <div>
+                        <div style="font-size:1.1rem;font-weight:700;" id="donorDisplayName">—</div>
+                        <div style="font-size:.82rem;color:var(--text-muted);" id="donorDisplayCard">—</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="blood-tag" id="donorDisplayGroup" style="font-size:1.05rem;padding:.3rem .75rem;">—</span>
+                    </div>
+                </div>
+                <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);font-size:.8rem;color:var(--text-secondary);display:flex;gap:1.5rem;">
+                    <div>Contact: <strong id="donorDisplayContact">—</strong></div>
+                    <div>Registered: <strong id="donorDisplayDate">—</strong></div>
+                </div>
+            </div>
+
+            <!-- Intake Confirmation Form -->
+            <form id="donationForm" onsubmit="handleDonationConfirm(event)">
+                <div class="form-group">
+                    <label class="form-label" for="unitsInput">Number of Blood Units Collected <span class="req">*</span></label>
+                    <select id="unitsInput" class="form-select" required>
+                        <option value="1" selected>1 Unit (450 mL standard bag)</option>
+                        <option value="2">2 Units (Double collection)</option>
+                        <option value="3">3 Units</option>
+                        <option value="4">4 Units</option>
+                        <option value="5">5 Units</option>
+                    </select>
+                </div>
+
+                <div style="margin-top:1.25rem;display:flex;gap:.5rem;">
+                    <button type="submit" id="confirmBtn" class="btn btn-success btn-block" style="padding:.7rem;">
+                        Confirm Intake &amp; Update Inventory
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetLookup()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+let activeDonor = null;
+
+async function handleDonorLookup(e) {
+    if (e) e.preventDefault();
+    const card = document.getElementById('cardInput').value.trim();
+    if (!card) {
+        showAlert('Please enter a Donor Card ID.', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('lookupBtn');
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    const res = await IBBMS.call('lookup_donor', { donor_card_no: card });
+    btn.disabled = false;
+    btn.textContent = 'Verify Card';
+
+    if (res && res.ok && res.donor) {
+        activeDonor = res.donor;
+        displayDonorIntake(res.donor);
+        showAlert(`Donor verified: ${res.donor.name} (${res.donor.blood_group})`, 'success');
+    } else {
+        showAlert((res && res.error) || 'Donor not found with this card ID.', 'error');
+        document.getElementById('intakeCard').style.display = 'none';
+        activeDonor = null;
+    }
+}
+
+function displayDonorIntake(d) {
+    document.getElementById('donorDisplayName').textContent = d.name;
+    document.getElementById('donorDisplayCard').textContent = `Card: ${d.donor_card_no}`;
+    document.getElementById('donorDisplayGroup').textContent = d.blood_group;
+    document.getElementById('donorDisplayContact').textContent = d.contact;
+    document.getElementById('donorDisplayDate').textContent = formatDate(d.created_at);
+
+    const card = document.getElementById('intakeCard');
+    card.style.display = 'block';
+    card.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function handleDonationConfirm(e) {
+    e.preventDefault();
+    if (!activeDonor) {
+        showAlert('Please verify a donor card first.', 'error');
+        return;
+    }
+
+    const units = parseInt(document.getElementById('unitsInput').value, 10) || 1;
+    const btn = document.getElementById('confirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Logging Donation...';
+
+    const res = await IBBMS.call('confirm_donation', {
+        donor_card_no: activeDonor.donor_card_no,
+        units
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Confirm Intake & Update Inventory';
+
+    if (res && res.ok) {
+        showAlert(res.message || `Successfully added +${units} unit(s) of ${res.blood_group || activeDonor.blood_group} to stock!`, 'success');
+        resetLookup();
+    } else {
+        showAlert((res && res.error) || 'Failed to record donation.', 'error');
+    }
+}
+
+function resetLookup() {
+    activeDonor = null;
+    document.getElementById('lookupForm').reset();
+    document.getElementById('intakeCard').style.display = 'none';
+    document.getElementById('cardInput').focus();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await IBBMS.loadShell('Staff');
+
+    const params = new URLSearchParams(window.location.search);
+    const cardParam = params.get('card');
+    if (cardParam) {
+        document.getElementById('cardInput').value = cardParam;
+        handleDonorLookup();
+    }
+});
+</script>
+</body>
+</html>

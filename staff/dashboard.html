@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Staff Dashboard — IBBMS</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+
+<!-- Top Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div>
+            <h1>IBBMS</h1>
+            <span>Lab Staff</span>
+        </div>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="register_donor.html">Register Donor</a>
+        <a href="log_donation.html">Log Donation</a>
+        <a href="manage_requests.html">Requests</a>
+    </div>
+    <div class="nav-right">
+        <span class="live-clock" style="font-size:.78rem;color:var(--text-muted)"></span>
+        <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
+        <div class="nav-user">
+            <div class="nav-avatar" id="navAvatar">ST</div>
+            <div>
+                <div id="navUsername" style="font-size:.8rem;font-weight:600">labstaff</div>
+                <div class="role-tag" id="navRole">Staff</div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="logout(event)">Logout</button>
+    </div>
+</nav>
+
+<!-- Page Content -->
+<div class="page">
+    <div class="page-header">
+        <div>
+            <h2>Lab Operations Dashboard</h2>
+            <p>Monitor blood reservoirs, track recent donors, and manage intake workflows.</p>
+        </div>
+        <div style="display:flex;gap:.5rem">
+            <a href="register_donor.html" class="btn btn-primary btn-sm">+ Register Donor</a>
+            <a href="log_donation.html" class="btn btn-secondary btn-sm">Log Donation</a>
+        </div>
+    </div>
+
+    <!-- 4 Stat Cards -->
+    <div class="stats-row">
+        <div class="stat-card red">
+            <div class="stat-label">Total Donors</div>
+            <div class="stat-value" id="statDonors">—</div>
+            <div class="stat-meta">Registered donor profiles</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">Total Stock</div>
+            <div class="stat-value" id="statStock">—</div>
+            <div class="stat-meta">Units currently in reservoir</div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-label">Pending Requests</div>
+            <div class="stat-value" id="statPending">—</div>
+            <div class="stat-meta">Awaiting review &amp; fulfillment</div>
+        </div>
+        <div class="stat-card blue">
+            <div class="stat-label">Today's Registrations</div>
+            <div class="stat-value" id="statToday">—</div>
+            <div class="stat-meta">New donors registered today</div>
+        </div>
+    </div>
+
+    <!-- Blood Inventory Grid Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--crimson)"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                Blood Inventory Status
+            </h3>
+            <span style="font-size:.78rem;color:var(--text-muted)">Live Reservoirs</span>
+        </div>
+        <div class="card-body">
+            <div class="blood-grid" id="bloodGrid">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Donors Table Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--crimson)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Recent Registered Donors
+            </h3>
+            <a href="register_donor.html" class="btn btn-secondary btn-sm">+ Add New</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Card No</th>
+                            <th>Donor Name</th>
+                            <th>Blood Group</th>
+                            <th>Contact</th>
+                            <th>Registered Date</th>
+                            <th style="text-align:right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="donorsTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">Loading donor records...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+async function initDashboard() {
+    const res = await IBBMS.loadShell('Staff');
+    if (!res || !res.ok) return;
+
+    // 1. Populate stats
+    const donors = res.donors || [];
+    const inventory = res.inventory || {};
+    const requests = res.requests || [];
+
+    const totalDonors = donors.length;
+    const totalStock = Object.values(inventory).reduce((acc, v) => acc + v, 0);
+    const pendingReqs = requests.filter(r => r.status === 'Pending').length;
+
+    // Calculate today's registrations
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayRegs = donors.filter(d => (d.created_at || '').slice(0, 10) === todayStr).length;
+
+    document.getElementById('statDonors').textContent = totalDonors;
+    document.getElementById('statStock').textContent = totalStock;
+    document.getElementById('statPending').textContent = pendingReqs;
+    document.getElementById('statToday').textContent = todayRegs;
+
+    // 2. Render Blood Grid
+    const bloodGrid = document.getElementById('bloodGrid');
+    const bloodGroups = BLOOD_GROUPS || ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+    const maxCapacity = 30; // Scale percentage for meter fill
+
+    bloodGrid.innerHTML = bloodGroups.map(bg => {
+        const units = inventory[bg] != null ? inventory[bg] : 0;
+        const pct = Math.min(100, Math.round((units / maxCapacity) * 100));
+        let levelClass = '';
+        if (units <= 2) {
+            levelClass = 'critical';
+        } else if (units <= 5) {
+            levelClass = 'low';
+        }
+
+        return `
+            <div class="blood-item ${levelClass}">
+                <div class="group-name">${esc(bg)}</div>
+                <div class="group-units">${units} <span style="font-size:.78rem;font-weight:500;color:var(--text-muted)">units</span></div>
+                <div class="group-label">ABO/Rh Reserve</div>
+                <div class="meter">
+                    <div class="meter-fill" style="width: ${pct}%"></div>
+                </div>
+                <a href="log_donation.html">+ Log Unit</a>
+            </div>
+        `;
+    }).join('');
+
+    // 3. Render Recent Donors (up to 6 rows)
+    const donorsBody = document.getElementById('donorsTableBody');
+    const recentDonors = donors.slice(0, 6);
+
+    if (recentDonors.length === 0) {
+        donorsBody.innerHTML = `<tr><td colspan="6" class="empty-state">No donors registered yet.</td></tr>`;
+    } else {
+        donorsBody.innerHTML = recentDonors.map(d => `
+            <tr>
+                <td><strong>${esc(d.donor_card_no)}</strong></td>
+                <td>${esc(d.name)}</td>
+                <td><span class="blood-tag">${esc(d.blood_group)}</span></td>
+                <td>${esc(d.contact)}</td>
+                <td style="color:var(--text-muted);font-size:.78rem">${formatDate(d.created_at)}</td>
+                <td style="text-align:right">
+                    <a href="log_donation.html?card=${encodeURIComponent(d.donor_card_no)}" class="btn btn-sm btn-primary">
+                        Log Donation
+                    </a>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initDashboard);
+</script>
+</body>
+</html>

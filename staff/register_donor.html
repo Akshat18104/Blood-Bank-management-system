@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Donor — IBBMS</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+
+<!-- Top Navbar -->
+<nav class="navbar">
+    <div class="nav-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div>
+            <h1>IBBMS</h1>
+            <span>Lab Staff</span>
+        </div>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="register_donor.html" class="active">Register Donor</a>
+        <a href="log_donation.html">Log Donation</a>
+        <a href="manage_requests.html">Requests</a>
+    </div>
+    <div class="nav-right">
+        <span class="live-clock" style="font-size:.78rem;color:var(--text-muted)"></span>
+        <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
+        <div class="nav-user">
+            <div class="nav-avatar" id="navAvatar">ST</div>
+            <div>
+                <div id="navUsername" style="font-size:.8rem;font-weight:600">labstaff</div>
+                <div class="role-tag" id="navRole">Staff</div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="logout(event)">Logout</button>
+    </div>
+</nav>
+
+<!-- Page Content -->
+<div class="page" style="max-width: 680px;">
+    <div class="page-header">
+        <div>
+            <h2>Register New Donor</h2>
+            <p>Enroll a voluntary donor into the hospital system and issue a Donor Card.</p>
+        </div>
+        <a href="dashboard.html" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <!-- Registration Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="color:var(--crimson)"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                Donor Enrollment Form
+            </h3>
+        </div>
+        <div class="card-body">
+            <!-- Success Banner (hidden by default) -->
+            <div id="successCard" style="display:none;background:var(--green-light);border:1px solid var(--green);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem;text-align:center;">
+                <div style="font-size:1.5rem;margin-bottom:.35rem;">&#10003;</div>
+                <h4 style="color:var(--green);font-size:1.1rem;margin-bottom:.35rem;">Donor Registered Successfully!</h4>
+                <p id="successMsg" style="font-size:.9rem;color:var(--text);margin-bottom:.85rem;"></p>
+                <div style="display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap;">
+                    <a id="logDonationLink" href="#" class="btn btn-primary btn-sm">Log Donation Now</a>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="resetFormForNext()">Register Another</button>
+                </div>
+            </div>
+
+            <form id="donorForm" onsubmit="handleDonorSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label" for="donorName">
+                        Full Name <span class="req">*</span>
+                    </label>
+                    <input type="text" id="donorName" class="form-input" placeholder="e.g. Ramesh Patel" required minlength="2">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="bloodGroup">
+                        Blood Group <span class="req">*</span>
+                    </label>
+                    <select id="bloodGroup" class="form-select" required>
+                        <option value="" disabled selected>-- Select Blood Group --</option>
+                        <option value="A+">A+ (A Positive)</option>
+                        <option value="A-">A- (A Negative)</option>
+                        <option value="B+">B+ (B Positive)</option>
+                        <option value="B-">B- (B Negative)</option>
+                        <option value="AB+">AB+ (AB Positive)</option>
+                        <option value="AB-">AB- (AB Negative)</option>
+                        <option value="O+">O+ (O Positive)</option>
+                        <option value="O-">O- (O Negative)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="contact">
+                        Contact Number (10 Digits) <span class="req">*</span>
+                    </label>
+                    <input type="tel" id="contact" name="contact" class="form-input" placeholder="e.g. 9876543210" pattern="[0-9]{10}" maxlength="10" required>
+                    <small style="color:var(--text-muted);font-size:.72rem;">Enter 10-digit mobile number</small>
+                </div>
+
+                <div style="margin-top:1.5rem;display:flex;gap:.75rem;">
+                    <button type="submit" id="submitBtn" class="btn btn-primary btn-block">
+                        Register Donor &amp; Issue Card
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="../assets/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await IBBMS.loadShell('Staff');
+});
+
+async function handleDonorSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const name = document.getElementById('donorName').value.trim();
+    const blood_group = document.getElementById('bloodGroup').value;
+    const contact = document.getElementById('contact').value.trim();
+
+    if (!name || !blood_group || !contact) {
+        showAlert('Please fill in all required fields.', 'error');
+        return;
+    }
+
+    if (!/^[0-9]{10}$/.test(contact)) {
+        showAlert('Contact number must be exactly 10 digits.', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Registering...';
+
+    const res = await IBBMS.call('register_donor', { name, blood_group, contact });
+
+    btn.disabled = false;
+    btn.textContent = 'Register Donor & Issue Card';
+
+    if (res && res.ok) {
+        showAlert(res.message || `Donor registered successfully with card: ${res.donor_card_no}`, 'success');
+
+        const successCard = document.getElementById('successCard');
+        const successMsg = document.getElementById('successMsg');
+        const logLink = document.getElementById('logDonationLink');
+
+        successMsg.innerHTML = `Assigned Donor Card No: <strong style="font-size:1.1rem;color:var(--crimson);">${esc(res.donor_card_no)}</strong><br>Blood Group: <strong>${esc(blood_group)}</strong> | Contact: ${esc(contact)}`;
+        logLink.href = `log_donation.html?card=${encodeURIComponent(res.donor_card_no)}`;
+        successCard.style.display = 'block';
+
+        document.getElementById('donorForm').style.display = 'none';
+    } else {
+        showAlert((res && res.error) || 'Failed to register donor.', 'error');
+    }
+}
+
+function resetFormForNext() {
+    document.getElementById('donorForm').reset();
+    document.getElementById('donorForm').style.display = 'block';
+    document.getElementById('successCard').style.display = 'none';
+    document.getElementById('donorName').focus();
+}
+</script>
+</body>
+</html>

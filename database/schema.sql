@@ -37,7 +37,15 @@ CREATE TABLE blood_requests (
     requested_by INT,
     blood_group VARCHAR(5) NOT NULL,
     units_requested INT NOT NULL,
-    status ENUM('Pending', 'Accepted', 'Rejected') DEFAULT 'Pending',
+    status ENUM('Pending', 'Accepted', 'Rejected', 'Cancelled') DEFAULT 'Pending',
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (requested_by) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- 5. Default Users Setup
+-- IMPORTANT: Do NOT insert users here with hardcoded hashes.
+-- Instead, run database/seed.php in your browser after importing this schema.
+-- It will create these default users with proper password hashes:
+--   admin    / admin123    (Admin)
+--   labstaff / staff123    (Staff)
+--   doctor   / doctor123   (Medical Staff)

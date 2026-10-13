@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ward Blood Requests — IBBMS Lab Staff</title>
+    <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-brand">
+        <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div><h1>IBBMS</h1><span>Lab Staff</span></div>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="register_donor.html">Register Donor</a>
+        <a href="log_donation.html">Log Donation</a>
+        <a href="manage_requests.html" class="active">Requests</a>
+    </div>
+    <div class="nav-right">
+        <span class="live-clock" style="font-size:.78rem;color:var(--text-muted)"></span>
+        <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme"></button>
+        <div class="nav-user">
+            <div class="nav-avatar" id="navAvatar">ST</div>
+            <div>
+                <div id="navUsername" style="font-size:.8rem;font-weight:600">labstaff</div>
+                <div class="role-tag" id="navRole">Staff</div>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-secondary" onclick="logout(event)">Logout</button>
+    </div>
+</nav>
+
+<main class="page">
+    <div class="page-header">
+        <div>
+            <h2>Clinical Blood Requests Desk</h2>
+            <p>Verify ABO/Rh compatibility, inspect real-time stock, and authorize ward dispatches.</p>
+        </div>
+        <a href="dashboard.html" class="btn btn-secondary btn-sm">&larr; Back to Dashboard</a>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div style="display:flex;gap:.5rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-sm btn-secondary filter-btn active" data-filter="All">All Requests (<span id="countAll">0</span>)</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Pending">Pending (<span id="countPending">0</span>)</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Accepted">Accepted (<span id="countAccepted">0</span>)</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Rejected">Rejected (<span id="countRejected">0</span>)</button>
+        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Cancelled">Cancelled (<span id="countCancelled">0</span>)</button>
+    </div>
+
+    <!-- Requests Table Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Ward Demand Dispatch Queue</h3>
+            <span id="activeFilterBadge" class="badge badge-blue">Filter: All</span>
+        </div>
+        <div class="card-body p-0" id="requestsTableContainer">
+            <div class="empty-state">Loading requisitions queue...</div>
+        </div>
+    </div>
+</main>
+
+<script src="../assets/app.js"></script>
+<script>
+let requestsList = [];
+let inventoryMap = {};
+let currentFilter = 'All';
+
+async function loadStaffRequests() {
+    const data = await IBBMS.loadShell('Staff');
+    if (!data) return;
+
+    requestsList = data.requests || [];
+    inventoryMap = data.inventory || {};
+
+    const counts = data.stats.counts || { All: 0, Pending: 0, Accepted: 0, Rejected: 0, Cancelled: 0 };
+    document.getElementById('countAll').textContent = counts.All || requestsList.length;
+    document.getElementById('countPending').textContent = counts.Pending || 0;
+    document.getElementById('countAccepted').textContent = counts.Accepted || 0;
+    document.getElementById('countRejected').textContent = counts.Rejected || 0;
+    const cancelEl = document.getElementById('countCancelled');
+    if (cancelEl) cancelEl.textContent = counts.Cancelled || 0;
+
+    renderRequests();
+}
+
+function renderRequests() {
+    const filtered = currentFilter === 'All' ? requestsList : requestsList.filter(r => r.status === currentFilter);
+    const container = document.getElementById('requestsTableContainer');
+    document.getElementById('activeFilterBadge').textContent = `Filter: ${currentFilter} (${filtered.length})`;
+
+    if (!filtered.length) {
+        container.innerHTML = `<div class="empty-state">No ${currentFilter === 'All' ? '' : currentFilter.toLowerCase() + ' '}demands found in queue.</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Req #</th>
+                        <th>Ordering Clinician</th>
+                        <th>Blood Group</th>
+                        <th>Requested Units</th>
+                        <th>Inventory Reserve</th>
+                        <th>Queue Status</th>
+                        <th>Order Timestamp</th>
+                        <th style="text-align:right;">Lab Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${filtered.map(r => {
+                        let statusBadge = 'badge-amber';
+                        if (r.status === 'Accepted') statusBadge = 'badge-green';
+                        else if (r.status === 'Rejected') statusBadge = 'badge-red';
+                        else if (r.status === 'Cancelled') statusBadge = 'badge-gray';
+                        const stockAvail = inventoryMap[r.blood_group] !== undefined ? inventoryMap[r.blood_group] : 0;
+                        const isPending = r.status === 'Pending';
+                        const hasEnoughStock = stockAvail >= r.units_requested;
+
+                        return `
+                            <tr>
+                                <td><strong>#${r.request_id}</strong></td>
+                                <td><strong>${esc(r.username || ('Doctor #' + r.requested_by))}</strong></td>
+                                <td><span class="blood-tag">${esc(r.blood_group)}</span></td>
+                                <td><strong>${r.units_requested}</strong> unit(s)</td>
+                                <td>
+                                    <span style="font-weight:600; color:${hasEnoughStock ? 'var(--green)' : 'var(--crimson)'}">
+                                        ${stockAvail} available
+                                    </span>
+                                </td>
+                                <td><span class="badge ${statusBadge}">${esc(r.status)}</span></td>
+                                <td style="font-size:.8rem;color:var(--text-secondary);">${formatDate(r.request_date)}</td>
+                                <td style="text-align:right;">
+                                    ${isPending ? `
+                                        <div style="display:inline-flex;gap:.35rem;">
+                                            <button class="btn btn-success btn-sm" onclick="handleDecision(${r.request_id}, 'accept', '${esc(r.blood_group)}', ${r.units_requested}, ${stockAvail})">
+                                                Authorize
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="handleDecision(${r.request_id}, 'reject', '${esc(r.blood_group)}', ${r.units_requested})">
+                                                Decline
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;">Completed</span>
+                                    `}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function handleDecision(id, decision, bg, units, avail) {
+    if (decision === 'accept' && avail !== undefined && avail < units) {
+        showAlert(`Insufficient ${bg} reservoir units! Available: ${avail}, Requested: ${units}.`, 'error');
+        return;
+    }
+
+    const title = decision === 'accept' ? 'Authorize Ward Blood Dispatch' : 'Decline Ward Blood Order';
+    const msg = decision === 'accept'
+        ? `Confirm dispatch of ${units} unit(s) of ${bg} for Request #${id}? This will deduct ${units} units from cold storage.`
+        : `Decline Request #${id} for ${units} unit(s) of ${bg}?`;
+
+    confirmModal({
+        title,
+        message: msg,
+        confirmText: decision === 'accept' ? 'Authorize & Dispatch' : 'Decline Request',
+        confirmClass: decision === 'accept' ? 'btn-success' : 'btn-danger',
+        onConfirm: async () => {
+            const res = await IBBMS.call('handle_request', { request_id: id, decision });
+            if (res && res.ok) {
+                showAlert(res.message || 'Request successfully processed.', 'success');
+                await loadStaffRequests();
+            } else {
+                showAlert((res && res.error) || 'Failed to update request.', 'error');
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadStaffRequests();
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            renderRequests();
+        });
+    });
+});
+</script>
+</body>
+</html>

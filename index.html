@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — IBBMS</title>
+    <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<div class="login-page">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                    <path d="M12 9v6M9 12h6"/>
+                </svg>
+            </div>
+            <div class="logo-text">
+                <h1>IBBMS</h1>
+                <span>Blood Bank Management</span>
+            </div>
+        </div>
+
+        <!-- Heading -->
+        <h2>Welcome back</h2>
+        <p class="subtitle">Sign in to your hospital portal</p>
+
+        <!-- Alert Box -->
+        <div id="alertBox" class="alert"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm" autocomplete="off" novalidate>
+            <div class="form-group">
+                <label class="form-label" for="username">Username <span class="req">*</span></label>
+                <input type="text" id="username" class="form-input" placeholder="e.g. admin" required autofocus>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password <span class="req">*</span></label>
+                <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+            </div>
+            <button type="submit" id="loginBtn" class="btn btn-primary btn-block" style="padding:.7rem;font-size:.9rem;margin-top:.25rem">
+                Sign In
+            </button>
+        </form>
+
+        <!-- Quick-fill role buttons -->
+        <div class="role-buttons">
+            <button onclick="fillRole('admin','admin123',this)">
+                <strong>Admin</strong>admin / admin123
+            </button>
+            <button onclick="fillRole('labstaff','staff123',this)">
+                <strong>Lab Staff</strong>labstaff / staff123
+            </button>
+            <button onclick="fillRole('doctor','doctor123',this)">
+                <strong>Doctor</strong>doctor / doctor123
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+function showLoginAlert(msg, type) {
+    const box = document.getElementById('alertBox');
+    box.className = 'alert alert-' + type;
+    box.textContent = msg;
+    box.style.display = 'block';
+}
+
+function fillRole(user, pass, btn) {
+    document.getElementById('username').value = user;
+    document.getElementById('password').value = pass;
+    document.querySelectorAll('.role-buttons button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('msg') === 'logged_out') showLoginAlert('Signed out successfully.', 'success');
+    if (params.get('error') === 'unauthorized') showLoginAlert('Please sign in first.', 'error');
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const u = document.getElementById('username').value.trim();
+        const p = document.getElementById('password').value;
+        if (!u || !p) { showLoginAlert('Enter both username and password.', 'error'); return; }
+
+        const btn = document.getElementById('loginBtn');
+        btn.disabled = true; btn.textContent = 'Signing in...';
+
+        const res = await IBBMS.call('login', { username: u, password: p });
+        if (res.ok && res.redirect) {
+            location.href = res.redirect;
+        } else {
+            btn.disabled = false; btn.textContent = 'Sign In';
+            showLoginAlert(res.error || 'Login failed.', 'error');
+        }
+    });
+});
+</script>
+</body>
+</html>

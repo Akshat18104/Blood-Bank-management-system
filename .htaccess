@@ -1,0 +1,7 @@
+DirectoryIndex index.html index.php
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !/api/
+RewriteCond %{REQUEST_URI} !/config/
+RewriteRule ^(index|admin/[a-z_]+|staff/[a-z_]+|medical_staff/[a-z_]+)\.php$ $1.html [R=302,L]
+</IfModule>
