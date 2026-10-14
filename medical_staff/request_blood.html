@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request Blood — IBBMS</title>
+    <title>Request Blood — BBMS</title>
     <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
         </div>
-        <div><h1>IBBMS</h1><span>Medical Staff</span></div>
+        <div><h1>BBMS</h1><span>Medical Staff</span></div>
     </div>
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
@@ -84,7 +84,7 @@
 <script src="../assets/app.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const data = await IBBMS.loadShell('Medical Staff');
+    const data = await BBMS.loadShell('Medical Staff');
     if (!data) return;
 
     // Pre-select group from URL
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         const btn = document.getElementById('submitBtn');
         btn.disabled = true; btn.textContent = 'Submitting...';
-        const res = await IBBMS.call('request_blood', { blood_group: bg, units_requested: units });
+        const res = await BBMS.call('request_blood', { blood_group: bg, units_requested: units });
         showAlert(res.message || res.error, res.ok ? 'success' : 'error');
         btn.disabled = false; btn.textContent = 'Submit Request';
         if (res.ok) {

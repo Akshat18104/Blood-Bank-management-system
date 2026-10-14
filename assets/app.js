@@ -1,5 +1,5 @@
 /**
- * IBBMS — Core Frontend Controller
+ * BBMS — Core Frontend Controller
  * Theme, API client with localStorage fallback, toasts, modals, clock.
  */
 
@@ -21,14 +21,14 @@ function formatDate(d) {
 
 /* ── Theme ──────────────────────────────────────────────────── */
 (function(){
-    const t = localStorage.getItem('ibbms_theme') || 'light';
+    const t = localStorage.getItem('bbms_theme') || localStorage.getItem('ibbms_theme') || 'light';
     document.documentElement.setAttribute('data-theme', t);
 })();
 
 function toggleTheme() {
     const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('ibbms_theme', next);
+    localStorage.setItem('bbms_theme', next);
     updateThemeIcons();
 }
 
@@ -74,7 +74,7 @@ function confirmModal({ title='Confirm', message='Are you sure?', confirmText='C
 }
 
 /* ── API Client with localStorage fallback ──────────────────── */
-const IBBMS = {
+const BBMS = {
     apiPath() {
         const p = location.pathname;
         return (p.includes('/admin/') || p.includes('/staff/') || p.includes('/medical_staff/'))
@@ -86,7 +86,7 @@ const IBBMS = {
     },
 
     seedStore() {
-        const raw = localStorage.getItem('ibbms_data');
+        const raw = localStorage.getItem('bbms_data') || localStorage.getItem('ibbms_data');
         if (raw) try { return JSON.parse(raw); } catch(e){}
         const s = {
             users: [
@@ -111,10 +111,10 @@ const IBBMS = {
             ],
             session:null
         };
-        localStorage.setItem('ibbms_data', JSON.stringify(s));
+        localStorage.setItem('bbms_data', JSON.stringify(s));
         return s;
     },
-    save(s) { localStorage.setItem('ibbms_data', JSON.stringify(s)); },
+    save(s) { localStorage.setItem('bbms_data', JSON.stringify(s)); },
 
     async call(action, payload={}) {
         try {
@@ -269,13 +269,19 @@ const IBBMS = {
             if (el('navAvatar'))  el('navAvatar').textContent = (res.user.username||'U').slice(0,2).toUpperCase();
         }
         return res;
-    }
 };
+
+// Backward compatibility alias
+const IBBMS = BBMS;
+if (typeof window !== 'undefined') {
+    window.BBMS = BBMS;
+    window.IBBMS = BBMS;
+}
 
 async function logout(e) {
     if (e) e.preventDefault();
-    const r = await IBBMS.call('logout');
-    location.href = r.redirect || (IBBMS.rootPrefix()+'index.html?msg=logged_out');
+    const r = await BBMS.call('logout');
+    location.href = r.redirect || (BBMS.rootPrefix()+'index.html?msg=logged_out');
 }
 
 /* ── Clock ──────────────────────────────────────────────────── */

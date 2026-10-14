@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports & Analytics — IBBMS Admin</title>
+    <title>Reports & Analytics — BBMS Admin</title>
     <link rel="stylesheet" href="../assets/styles.css">
     <style>
         @media print {
@@ -20,7 +20,7 @@
         <div class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
         </div>
-        <div><h1>IBBMS</h1><span>Admin Panel</span></div>
+        <div><h1>BBMS</h1><span>Admin Panel</span></div>
     </div>
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
@@ -124,7 +124,7 @@
 let reportData = null;
 
 async function loadReports() {
-    reportData = await IBBMS.loadShell('Admin');
+    reportData = await BBMS.loadShell('Admin');
     if (!reportData) return;
 
     // KPI numbers
@@ -241,7 +241,7 @@ function exportDonorsCSV() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `ibbms_donors_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `BBMS_donors_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();

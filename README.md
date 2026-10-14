@@ -1,6 +1,6 @@
-# Internal Blood Bank Management System (IBBMS)
+# Blood Bank Management System (BBMS)
 
-The **Internal Blood Bank Management System (IBBMS)** is a modern hospital intranet web application designed to digitize blood bank inventory, donor card issuance, and clinical ward blood requisitions.
+The **Blood Bank Management System (BBMS)** is a modern hospital intranet web application designed to digitize blood bank inventory, donor card issuance, and clinical ward blood requisitions.
 
 ## Tech Stack & Architecture
 - **Frontend (Primary — HTML5, CSS3, ES6 JavaScript):**

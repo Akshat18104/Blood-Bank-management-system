@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users — IBBMS Admin</title>
+    <title>Manage Users — BBMS Admin</title>
     <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
         </div>
-        <div><h1>IBBMS</h1><span>Admin Panel</span></div>
+        <div><h1>BBMS</h1><span>Admin Panel</span></div>
     </div>
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
@@ -101,7 +101,7 @@ function toggleAddUserForm() {
 }
 
 async function loadUsersData() {
-    const data = await IBBMS.loadShell('Admin');
+    const data = await BBMS.loadShell('Admin');
     if (!data) return;
 
     usersList = data.users || [];
@@ -137,7 +137,7 @@ function renderUsersTable() {
                         else if (u.role === 'Staff') roleBadge = 'badge-green';
                         else if (u.role === 'Medical Staff') roleBadge = 'badge-amber';
 
-                        const isSelf = (IBBMS.seedStore().session && IBBMS.seedStore().session.user_id === u.user_id);
+                        const isSelf = (BBMS.seedStore().session && BBMS.seedStore().session.user_id === u.user_id);
 
                         return `
                             <tr>
@@ -175,7 +175,7 @@ async function handleAddUser(e) {
     btn.disabled = true;
     btn.textContent = 'Saving...';
 
-    const res = await IBBMS.call('add_user', { username, password, role });
+    const res = await BBMS.call('add_user', { username, password, role });
     btn.disabled = false;
     btn.textContent = 'Create Account';
 
@@ -196,7 +196,7 @@ function confirmDeleteUser(userId, username) {
         confirmText: 'Delete Account',
         confirmClass: 'btn-danger',
         onConfirm: async () => {
-            const res = await IBBMS.call('delete_user', { user_id: userId });
+            const res = await BBMS.call('delete_user', { user_id: userId });
             if (res && res.ok) {
                 showAlert(res.message || 'User account removed.', 'success');
                 await loadUsersData();

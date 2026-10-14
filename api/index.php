@@ -1,7 +1,7 @@
 <?php
 /**
  * Unified JSON API Controller
- * Internal Blood Bank Management System (IBBMS)
+ * Blood Bank Management System (BBMS)
  */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In — IBBMS</title>
+    <title>Sign In — BBMS</title>
     <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
                 </svg>
             </div>
             <div class="logo-text">
-                <h1>IBBMS</h1>
+                <h1>BBMS</h1>
                 <span>Blood Bank Management</span>
             </div>
         </div>
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btn = document.getElementById('loginBtn');
         btn.disabled = true; btn.textContent = 'Signing in...';
 
-        const res = await IBBMS.call('login', { username: u, password: p });
+        const res = await BBMS.call('login', { username: u, password: p });
         if (res.ok && res.redirect) {
             location.href = res.redirect;
         } else {

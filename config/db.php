@@ -1,7 +1,7 @@
 <?php
 /**
  * Database Configuration & Auto-Initializer
- * Internal Blood Bank Management System (IBBMS)
+ * Blood Bank Management System (BBMS)
  */
 $conn = @new mysqli('localhost', 'root', '');
 if ($conn->connect_error) {

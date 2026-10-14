@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Blood Requests — IBBMS Admin</title>
+    <title>Manage Blood Requests — BBMS Admin</title>
     <link rel="stylesheet" href="../assets/styles.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="brand-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
         </div>
-        <div><h1>IBBMS</h1><span>Admin Panel</span></div>
+        <div><h1>BBMS</h1><span>Admin Panel</span></div>
     </div>
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
@@ -70,7 +70,7 @@ let currentFilter = 'All';
 let inventoryStock = {};
 
 async function loadRequestsData() {
-    const data = await IBBMS.loadShell('Admin');
+    const data = await BBMS.loadShell('Admin');
     if (!data) return;
 
     allRequests = data.requests || [];
@@ -175,7 +175,7 @@ function handleDecision(id, decision, bg, units, avail) {
         confirmText: decision === 'accept' ? 'Approve & Dispatch' : 'Reject Requisition',
         confirmClass: decision === 'accept' ? 'btn-success' : 'btn-danger',
         onConfirm: async () => {
-            const res = await IBBMS.call('handle_request', { request_id: id, decision });
+            const res = await BBMS.call('handle_request', { request_id: id, decision });
             if (res && res.ok) {
                 showAlert(res.message || 'Request updated.', 'success');
                 await loadRequestsData();
