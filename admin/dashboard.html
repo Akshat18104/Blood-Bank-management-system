@@ -100,7 +100,7 @@
                                     <th>Group</th>
                                     <th>Units</th>
                                     <th>Status</th>
-                                    <th>Action</th>
+                                    <th style="text-align:right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="recentRequestsBody">
@@ -128,7 +128,7 @@
                                     <th>Card No</th>
                                     <th>Name</th>
                                     <th>Group</th>
-                                    <th>Contact</th>
+                                    <th style="text-align:right;">Contact</th>
                                 </tr>
                             </thead>
                             <tbody id="recentDonorsBody">
@@ -210,7 +210,7 @@
                         <td><span class="blood-tag">${esc(r.blood_group)}</span></td>
                         <td><strong>${esc(r.units_requested)}</strong> units</td>
                         <td><span class="badge ${badgeClass}">${esc(r.status)}</span></td>
-                        <td>${actionBtn}</td>
+                        <td style="text-align:right;">${actionBtn}</td>
                     </tr>
                 `;
             }).join('');
@@ -229,7 +229,7 @@
                     <td><code>${esc(d.donor_card_no)}</code></td>
                     <td><strong>${esc(d.name)}</strong></td>
                     <td><span class="blood-tag">${esc(d.blood_group)}</span></td>
-                    <td>${esc(d.contact)}</td>
+                    <td style="text-align:right;">${esc(d.contact)}</td>
                 </tr>
             `).join('');
         }

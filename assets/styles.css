@@ -364,6 +364,7 @@ img { max-width: 100%; }
 .blood-item .group-label {
     font-size: .7rem; font-weight: 600; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: .04em;
+}
 .blood-item.low { border-color: rgba(217, 119, 6, 0.4); }
 .blood-item.critical { border-color: rgba(225, 29, 72, 0.4); }
 .blood-item.critical .group-name { color: var(--crimson); }
@@ -387,13 +388,13 @@ img { max-width: 100%; }
 /* ============================================================
    Table
    ============================================================ */
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; width: 100%; }
 table {
-    width: 100%; border-collapse: collapse;
+    width: 100%; border-collapse: collapse; text-align: left;
 }
 table th, table td {
-    padding: .7rem 1rem; text-align: left;
-    font-size: .82rem;
+    padding: .75rem 1rem; text-align: left;
+    font-size: .82rem; vertical-align: middle;
 }
 table th {
     background: var(--surface-alt);
@@ -401,6 +402,7 @@ table th {
     text-transform: uppercase; letter-spacing: .05em;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 table td { border-bottom: 1px solid var(--border); }
 table tbody tr:hover { background: var(--surface-alt); }
