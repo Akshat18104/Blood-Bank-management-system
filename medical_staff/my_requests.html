@@ -48,7 +48,6 @@
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Pending">Pending</button>
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Accepted">Accepted</button>
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Rejected">Rejected</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Cancelled">Cancelled</button>
     </div>
 
     <div class="card">
@@ -95,7 +94,6 @@ function renderTable() {
                         <th>Units</th>
                         <th>Status</th>
                         <th>Submitted Date</th>
-                        <th style="text-align:right;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,12 +101,6 @@ function renderTable() {
                         let bc = 'badge-amber';
                         if (r.status === 'Accepted') bc = 'badge-green';
                         else if (r.status === 'Rejected') bc = 'badge-red';
-                        else if (r.status === 'Cancelled') bc = 'badge-gray';
-
-                        const isPending = r.status === 'Pending';
-                        const actionHtml = isPending
-                            ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder(${r.request_id}, '${esc(r.blood_group)}', ${r.units_requested})">Cancel</button>`
-                            : `<span style="font-size:.78rem;color:var(--text-muted);font-weight:600;">—</span>`;
 
                         return `
                             <tr>
@@ -117,7 +109,6 @@ function renderTable() {
                                 <td><strong>${r.units_requested}</strong> unit(s)</td>
                                 <td><span class="badge ${bc}">${esc(r.status)}</span></td>
                                 <td style="font-size:.8rem;color:var(--text-secondary);">${formatDate(r.request_date)}</td>
-                                <td style="text-align:right;">${actionHtml}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -125,24 +116,6 @@ function renderTable() {
             </table>
         </div>
     `;
-}
-
-function cancelOrder(reqId, bg, units) {
-    confirmModal({
-        title: 'Cancel Blood Request',
-        message: `Are you sure you want to cancel Request #${reqId} for ${units} unit(s) of ${bg}? This action cannot be undone.`,
-        confirmText: 'Yes, Cancel Request',
-        confirmClass: 'btn-danger',
-        onConfirm: async () => {
-            const res = await BBMS.call('cancel_request', { request_id: reqId });
-            if (res && res.ok) {
-                showAlert(res.message || 'Request cancelled successfully.', 'success');
-                await loadRequests();
-            } else {
-                showAlert((res && res.error) || 'Failed to cancel request.', 'error');
-            }
-        }
-    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -196,11 +196,10 @@
                 if (r.status === 'Accepted') badgeClass = 'badge-green';
                 else if (r.status === 'Pending') badgeClass = 'badge-amber';
                 else if (r.status === 'Rejected') badgeClass = 'badge-red';
-                else if (r.status === 'Cancelled') badgeClass = 'badge-gray';
 
                 const actionBtn = r.status === 'Pending'
                     ? `<button class="btn btn-sm btn-success" onclick="approveRequest(${r.request_id})">Approve</button>`
-                    : `<span style="color:var(--text-muted);font-size:.78rem;">${r.status === 'Cancelled' ? 'Cancelled' : 'Completed'}</span>`;
+                    : `<span style="color:var(--text-muted);font-size:.78rem;">Completed</span>`;
 
                 return `
                     <tr>

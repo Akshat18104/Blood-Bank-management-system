@@ -63,7 +63,7 @@ The database configuration file ([`config/db.php`](file:///c:/Users/Akshat/Docum
    - `inventory`: Aggregate blood stock per group (`blood_group` PK, `units_available`).
    - `blood_requests`: Requisitions created by medical staff (`request_id`, `requested_by`, `blood_group`, `units_requested`, `status`, `request_date`).
 4. **Schema Evolution (Migration)**:
-   Runs `ALTER TABLE blood_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Rejected', 'Cancelled')` to ensure older database installations gain support for cancellation without manual SQL scripts.
+   Runs `ALTER TABLE blood_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Rejected')` to ensure consistent column types across environments.
 5. **Data Seeding & Password Security**:
    - Seeds initial inventory across 8 blood groups (`A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`) if the table is empty.
    - Automatically provisions/repairs default accounts using **BCrypt** (`PASSWORD_DEFAULT`):
@@ -121,7 +121,6 @@ Incoming action is resolved from `$_GET['action']` or `$input['action']` (decode
 | `lookup_donor` | POST / GET (`donor_card_no`) | **Admin**, **Staff** | Searches donor registry by card number. |
 | `confirm_donation` | POST (`donor_card_no`, `units`) | **Admin**, **Staff** | Uses `ON DUPLICATE KEY UPDATE` to atomically increment inventory stock for donor's blood group. |
 | `request_blood` | POST (`blood_group`, `units_requested`) | **Medical Staff**, **Admin** | Creates a pending blood requisition linked to `$_SESSION['user_id']`. |
-| `cancel_request` | POST (`request_id`) | **Medical Staff**, **Admin** | Validates requisition ownership (doctors only cancel their own) and pending state, then sets status to `Cancelled`. |
 
 #### C. Database Transaction Handling (Blood Dispatch)
 To prevent race conditions where multiple staff members approve requests simultaneously beyond available stock, `handle_request` uses a database transaction:
@@ -223,7 +222,7 @@ Each frontend view pairs [`assets/app.js`](file:///c:/Users/Akshat/Documents/sof
 ### 2. Admin Portal
 - [`admin/dashboard.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/admin/dashboard.html): Loads summary counters, renders blood inventory grid with critical/low warnings, renders recent 5 requisitions and recent 5 donors.
 - [`admin/manage_users.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/admin/manage_users.html): Provides account creation with role selection, user listing table, and account deletion with confirmation modal.
-- [`admin/manage_requests.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/admin/manage_requests.html): Filterable table (All, Pending, Accepted, Rejected, Cancelled) with approval/rejection triggers.
+- [`admin/manage_requests.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/admin/manage_requests.html): Filterable table (All, Pending, Accepted, Rejected) with approval/rejection triggers.
 - [`admin/reports.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/admin/reports.html): Stock summary analytics and client-side CSV generator (`exportDonorsCSV()`).
 
 ### 3. Staff Portal (Blood Bank Laboratory)
@@ -235,7 +234,7 @@ Each frontend view pairs [`assets/app.js`](file:///c:/Users/Akshat/Documents/sof
 ### 4. Medical Staff Portal (Doctors & Wards)
 - [`medical_staff/dashboard.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/medical_staff/dashboard.html): Requisition activity stats and pending approvals counter.
 - [`medical_staff/request_blood.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/medical_staff/request_blood.html): Requisition form enforcing blood group selection and unit constraints (1 to 10 units).
-- [`medical_staff/my_requests.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/medical_staff/my_requests.html): Chronological table of doctor's own requisitions with interactive **"Cancel"** action on any `Pending` request.
+- [`medical_staff/my_requests.html`](file:///c:/Users/Akshat/Documents/software%20lab%20project/Blood%20Bank%20Management%20System/Blood-Bank-management-system/medical_staff/my_requests.html): Chronological table of doctor's own requisitions with real-time status tracking.
 
 ---
 
@@ -268,4 +267,3 @@ Each frontend view pairs [`assets/app.js`](file:///c:/Users/Akshat/Documents/sof
 | `lookup_donor` | `api/index.php` | `action === 'lookup_donor'` | `BBMS.call('lookup_donor', { donor_card_no })` |
 | `confirm_donation`| `api/index.php` | `action === 'confirm_donation'`| `BBMS.call('confirm_donation', { donor_card_no, units })` |
 | `request_blood` | `api/index.php` | `action === 'request_blood'` | `BBMS.call('request_blood', { blood_group, units_requested })` |
-| `cancel_request` | `api/index.php` | `action === 'cancel_request'` | `BBMS.call('cancel_request', { request_id })` |

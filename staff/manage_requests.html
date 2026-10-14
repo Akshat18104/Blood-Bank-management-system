@@ -49,7 +49,6 @@
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Pending">Pending (<span id="countPending">0</span>)</button>
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Accepted">Accepted (<span id="countAccepted">0</span>)</button>
         <button class="btn btn-sm btn-secondary filter-btn" data-filter="Rejected">Rejected (<span id="countRejected">0</span>)</button>
-        <button class="btn btn-sm btn-secondary filter-btn" data-filter="Cancelled">Cancelled (<span id="countCancelled">0</span>)</button>
     </div>
 
     <!-- Requests Table Card -->
@@ -77,13 +76,11 @@ async function loadStaffRequests() {
     requestsList = data.requests || [];
     inventoryMap = data.inventory || {};
 
-    const counts = data.stats.counts || { All: 0, Pending: 0, Accepted: 0, Rejected: 0, Cancelled: 0 };
+    const counts = data.stats.counts || { All: 0, Pending: 0, Accepted: 0, Rejected: 0 };
     document.getElementById('countAll').textContent = counts.All || requestsList.length;
     document.getElementById('countPending').textContent = counts.Pending || 0;
     document.getElementById('countAccepted').textContent = counts.Accepted || 0;
     document.getElementById('countRejected').textContent = counts.Rejected || 0;
-    const cancelEl = document.getElementById('countCancelled');
-    if (cancelEl) cancelEl.textContent = counts.Cancelled || 0;
 
     renderRequests();
 }
@@ -118,7 +115,6 @@ function renderRequests() {
                         let statusBadge = 'badge-amber';
                         if (r.status === 'Accepted') statusBadge = 'badge-green';
                         else if (r.status === 'Rejected') statusBadge = 'badge-red';
-                        else if (r.status === 'Cancelled') statusBadge = 'badge-gray';
                         const stockAvail = inventoryMap[r.blood_group] !== undefined ? inventoryMap[r.blood_group] : 0;
                         const isPending = r.status === 'Pending';
                         const hasEnoughStock = stockAvail >= r.units_requested;

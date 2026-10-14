@@ -42,11 +42,11 @@ $conn->query("CREATE TABLE IF NOT EXISTS blood_requests (
     requested_by INT,
     blood_group VARCHAR(5) NOT NULL,
     units_requested INT NOT NULL,
-    status ENUM('Pending', 'Accepted', 'Rejected', 'Cancelled') DEFAULT 'Pending',
+    status ENUM('Pending', 'Accepted', 'Rejected') DEFAULT 'Pending',
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (requested_by) REFERENCES users(user_id) ON DELETE CASCADE
 )");
-@$conn->query("ALTER TABLE blood_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Rejected', 'Cancelled') DEFAULT 'Pending'");
+@$conn->query("ALTER TABLE blood_requests MODIFY COLUMN status ENUM('Pending', 'Accepted', 'Rejected') DEFAULT 'Pending'");
 
 // Seed default blood groups if empty
 if (($r = $conn->query("SELECT COUNT(*) c FROM inventory")) && (int)$r->fetch_assoc()['c'] === 0) {

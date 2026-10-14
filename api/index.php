@@ -95,7 +95,7 @@ if ($action === 'data') {
     $total_users = (int)$conn->query("SELECT COUNT(*) c FROM users")->fetch_assoc()['c'];
 
     // Request counts
-    $counts = ['All' => 0, 'Pending' => 0, 'Accepted' => 0, 'Rejected' => 0, 'Cancelled' => 0];
+    $counts = ['All' => 0, 'Pending' => 0, 'Accepted' => 0, 'Rejected' => 0];
     $where_req = ($role === 'Medical Staff') ? "WHERE requested_by = $uid" : "";
     if ($rc = $conn->query("SELECT status, COUNT(*) c FROM blood_requests $where_req GROUP BY status")) {
         while ($r = $rc->fetch_assoc()) {
@@ -255,30 +255,6 @@ if ($action === 'request_blood') {
     $st->bind_param("isi", $uid, $bg, $units);
     $st->execute();
     respond(['ok' => true, 'request_id' => $conn->insert_id, 'message' => "Requisition #$conn->insert_id for $units unit(s) of $bg submitted for lab review!"]);
-}
-
-if ($action === 'cancel_request') {
-    require_auth(['Medical Staff', 'Admin']);
-    $req_id = (int)($input['request_id'] ?? 0);
-    $uid = (int)$_SESSION['user_id'];
-    $role = $_SESSION['role'];
-
-    if ($role === 'Medical Staff') {
-        $st = $conn->prepare("SELECT blood_group, units_requested, status FROM blood_requests WHERE request_id = ? AND requested_by = ? LIMIT 1");
-        $st->bind_param("ii", $req_id, $uid);
-    } else {
-        $st = $conn->prepare("SELECT blood_group, units_requested, status FROM blood_requests WHERE request_id = ? LIMIT 1");
-        $st->bind_param("i", $req_id);
-    }
-    $st->execute();
-    $req = $st->get_result()->fetch_assoc();
-    if (!$req) respond(['ok' => false, 'error' => 'Request not found or access denied.']);
-    if ($req['status'] !== 'Pending') respond(['ok' => false, 'error' => "Cannot cancel request; current status is '{$req['status']}'."]);
-
-    $up = $conn->prepare("UPDATE blood_requests SET status = 'Cancelled' WHERE request_id = ?");
-    $up->bind_param("i", $req_id);
-    $up->execute();
-    respond(['ok' => true, 'message' => "Request #$req_id for {$req['units_requested']} unit(s) of {$req['blood_group']} has been cancelled."]);
 }
 
 respond(['ok' => false, 'error' => 'Unknown API action.'], 400);

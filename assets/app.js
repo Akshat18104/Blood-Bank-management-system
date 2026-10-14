@@ -4,6 +4,7 @@
  */
 
 const BLOOD_GROUPS = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+if (typeof window !== 'undefined') { window.BLOOD_GROUPS = BLOOD_GROUPS; }
 
 function esc(s) {
     if (s == null) return '';
@@ -176,7 +177,7 @@ const BBMS = {
             const totalStock = Object.values(inventory).reduce((a,b)=>a+b,0);
             const allReqs = Array.isArray(s.requests) ? s.requests : [];
             const reqs = role==='Medical Staff' ? allReqs.filter(r=>r.requested_by===uid) : allReqs;
-            const counts = {All:reqs.length,Pending:0,Accepted:0,Rejected:0,Cancelled:0};
+            const counts = {All:reqs.length,Pending:0,Accepted:0,Rejected:0};
             reqs.forEach(r => { if (counts[r.status]!==undefined) counts[r.status]++; });
             const allDonors = Array.isArray(s.donors) ? s.donors : [];
             const allUsers = Array.isArray(s.users) ? s.users : [];
@@ -254,22 +255,6 @@ const BBMS = {
             s.requests.unshift({request_id:id,requested_by:user.user_id,username:user.username,blood_group:bg,units_requested:units,status:'Pending',request_date:now});
             this.save(s);
             return {ok:true,request_id:id,message:`Request #${id} for ${units} unit(s) of ${bg} submitted.`};
-        }
-        if (action === 'cancel_request') {
-            const id = Number(payload.request_id);
-            const req = s.requests.find(r => Number(r.request_id) === id);
-            if (!req) return { ok: false, error: 'Request not found.' };
-            const role = s.session ? s.session.role : 'Medical Staff';
-            const uid = s.session ? s.session.user_id : 3;
-            if (role === 'Medical Staff' && req.requested_by && req.requested_by !== uid) {
-                return { ok: false, error: 'You can only cancel your own requests.' };
-            }
-            if (req.status !== 'Pending') {
-                return { ok: false, error: `Only Pending requests can be cancelled. Current status is ${req.status}.` };
-            }
-            req.status = 'Cancelled';
-            this.save(s);
-            return { ok: true, message: `Request #${id} for ${req.units_requested} unit(s) of ${req.blood_group} has been cancelled.` };
         }
         return {ok:false,error:'Unknown action.'};
     },

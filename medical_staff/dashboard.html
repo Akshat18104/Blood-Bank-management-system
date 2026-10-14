@@ -128,19 +128,12 @@ function renderRecentRequests(requests) {
                 <th>Units</th>
                 <th>Status</th>
                 <th>Date</th>
-                <th style="text-align:right;">Action</th>
             </tr>
         </thead>
         <tbody>${reqs.map(r => {
             let bc = 'badge-amber';
             if (r.status === 'Accepted') bc = 'badge-green';
             else if (r.status === 'Rejected') bc = 'badge-red';
-            else if (r.status === 'Cancelled') bc = 'badge-gray';
-
-            const isPending = r.status === 'Pending';
-            const actionHtml = isPending
-                ? `<button class="btn btn-danger btn-sm" onclick="cancelDoctorRequest(${r.request_id}, '${esc(r.blood_group)}', ${r.units_requested})">Cancel</button>`
-                : `<span style="font-size:.78rem;color:var(--text-muted);font-weight:600;">—</span>`;
 
             return `<tr>
                 <td><strong>#${r.request_id}</strong></td>
@@ -148,35 +141,8 @@ function renderRecentRequests(requests) {
                 <td>${r.units_requested} unit(s)</td>
                 <td><span class="badge ${bc}">${esc(r.status)}</span></td>
                 <td style="font-size:.8rem;color:var(--text-secondary);">${formatDate(r.request_date)}</td>
-                <td style="text-align:right;">${actionHtml}</td>
             </tr>`;
         }).join('')}</tbody></table></div>`;
-}
-
-function cancelDoctorRequest(reqId, bg, units) {
-    confirmModal({
-        title: 'Cancel Blood Request',
-        message: `Cancel Request #${reqId} for ${units} unit(s) of ${bg}?`,
-        confirmText: 'Yes, Cancel Request',
-        confirmClass: 'btn-danger',
-        onConfirm: async () => {
-            const res = await BBMS.call('cancel_request', { request_id: reqId });
-            if (res && res.ok) {
-                showAlert(res.message || 'Request cancelled.', 'success');
-                const refreshed = await BBMS.loadShell('Medical Staff');
-                if (refreshed) {
-                    const c = refreshed.stats.counts || {};
-                    document.getElementById('statTotal').textContent = c.All || 0;
-                    document.getElementById('statPending').textContent = c.Pending || 0;
-                    document.getElementById('statAccepted').textContent = c.Accepted || 0;
-                    document.getElementById('statRejected').textContent = c.Rejected || 0;
-                    renderRecentRequests(refreshed.requests || []);
-                }
-            } else {
-                showAlert((res && res.error) || 'Failed to cancel request.', 'error');
-            }
-        }
-    });
 }
 </script>
 </body>

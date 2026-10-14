@@ -205,7 +205,6 @@ async function loadReports() {
                             let bc = 'badge-amber';
                             if (r.status === 'Accepted') bc = 'badge-green';
                             else if (r.status === 'Rejected') bc = 'badge-red';
-                            else if (r.status === 'Cancelled') bc = 'badge-gray';
                             return `
                                 <tr>
                                     <td><strong>#${r.request_id}</strong></td>
