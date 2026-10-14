@@ -100,12 +100,23 @@ function toggleAddUserForm() {
     }
 }
 
-async function loadUsersData() {
-    const data = await BBMS.loadShell('Admin');
-    if (!data) return;
+let currentUserId = null;
 
-    usersList = data.users || [];
-    renderUsersTable();
+async function loadUsersData() {
+    try {
+        const data = await BBMS.loadShell('Admin');
+        if (!data) return;
+
+        if (data.user) currentUserId = data.user.user_id;
+        usersList = data.users || [];
+        renderUsersTable();
+    } catch (err) {
+        console.error('Failed to load users:', err);
+        const container = document.getElementById('usersTableContainer');
+        if (container) {
+            container.innerHTML = `<div class="empty-state" style="color:var(--danger)">Failed to load users: ${esc(err.message || 'Unknown error')}</div>`;
+        }
+    }
 }
 
 function renderUsersTable() {
@@ -137,7 +148,7 @@ function renderUsersTable() {
                         else if (u.role === 'Staff') roleBadge = 'badge-green';
                         else if (u.role === 'Medical Staff') roleBadge = 'badge-amber';
 
-                        const isSelf = (BBMS.seedStore().session && BBMS.seedStore().session.user_id === u.user_id);
+                        const isSelf = (currentUserId && currentUserId === u.user_id) || (BBMS.seedStore().session && BBMS.seedStore().session.user_id === u.user_id);
 
                         return `
                             <tr>
@@ -207,7 +218,11 @@ function confirmDeleteUser(userId, username) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', loadUsersData);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadUsersData);
+} else {
+    loadUsersData();
+}
 </script>
 </body>
 </html>

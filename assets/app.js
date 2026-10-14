@@ -86,31 +86,41 @@ const BBMS = {
     },
 
     seedStore() {
+        const defaultUsers = [
+            {user_id:1,username:'admin',password:'admin123',role:'Admin',created_at:'2026-10-01 09:00:00'},
+            {user_id:2,username:'labstaff',password:'staff123',role:'Staff',created_at:'2026-10-01 09:15:00'},
+            {user_id:3,username:'doctor',password:'doctor123',role:'Medical Staff',created_at:'2026-10-01 09:30:00'}
+        ];
+        const defaultInventory = {'A+':14,'A-':4,'B+':18,'B-':3,'AB+':8,'AB-':2,'O+':22,'O-':6};
+        const defaultDonors = [
+            {donor_id:1,donor_card_no:'DONOR-10482',name:'Aarav Sharma',blood_group:'O+',contact:'9876543210',created_at:'2026-10-10 10:20:00'},
+            {donor_id:2,donor_card_no:'DONOR-20915',name:'Priya Nair',blood_group:'A+',contact:'9823456712',created_at:'2026-10-11 11:45:00'},
+            {donor_id:3,donor_card_no:'DONOR-38410',name:'Rohan Verma',blood_group:'B+',contact:'9811223344',created_at:'2026-10-12 14:10:00'},
+            {donor_id:4,donor_card_no:'DONOR-49201',name:'Ananya Iyer',blood_group:'O-',contact:'9765432109',created_at:'2026-10-12 16:30:00'},
+            {donor_id:5,donor_card_no:'DONOR-57390',name:'Vikram Rathore',blood_group:'AB+',contact:'9898765432',created_at:'2026-10-13 08:15:00'}
+        ];
+        const defaultRequests = [
+            {request_id:101,requested_by:3,username:'doctor',blood_group:'O+',units_requested:2,status:'Accepted',request_date:'2026-10-11 13:20:00'},
+            {request_id:102,requested_by:3,username:'doctor',blood_group:'A-',units_requested:1,status:'Pending',request_date:'2026-10-12 15:40:00'},
+            {request_id:103,requested_by:3,username:'doctor',blood_group:'B+',units_requested:3,status:'Accepted',request_date:'2026-10-12 18:05:00'},
+            {request_id:104,requested_by:3,username:'doctor',blood_group:'O-',units_requested:2,status:'Pending',request_date:'2026-10-13 09:10:00'},
+            {request_id:105,requested_by:3,username:'doctor',blood_group:'AB-',units_requested:4,status:'Rejected',request_date:'2026-10-10 11:00:00'}
+        ];
+
+        let s = null;
         const raw = localStorage.getItem('bbms_data') || localStorage.getItem('ibbms_data');
-        if (raw) try { return JSON.parse(raw); } catch(e){}
-        const s = {
-            users: [
-                {user_id:1,username:'admin',password:'admin123',role:'Admin',created_at:'2026-10-01 09:00:00'},
-                {user_id:2,username:'labstaff',password:'staff123',role:'Staff',created_at:'2026-10-01 09:15:00'},
-                {user_id:3,username:'doctor',password:'doctor123',role:'Medical Staff',created_at:'2026-10-01 09:30:00'}
-            ],
-            inventory:{'A+':14,'A-':4,'B+':18,'B-':3,'AB+':8,'AB-':2,'O+':22,'O-':6},
-            donors:[
-                {donor_id:1,donor_card_no:'DONOR-10482',name:'Aarav Sharma',blood_group:'O+',contact:'9876543210',created_at:'2026-10-10 10:20:00'},
-                {donor_id:2,donor_card_no:'DONOR-20915',name:'Priya Nair',blood_group:'A+',contact:'9823456712',created_at:'2026-10-11 11:45:00'},
-                {donor_id:3,donor_card_no:'DONOR-38410',name:'Rohan Verma',blood_group:'B+',contact:'9811223344',created_at:'2026-10-12 14:10:00'},
-                {donor_id:4,donor_card_no:'DONOR-49201',name:'Ananya Iyer',blood_group:'O-',contact:'9765432109',created_at:'2026-10-12 16:30:00'},
-                {donor_id:5,donor_card_no:'DONOR-57390',name:'Vikram Rathore',blood_group:'AB+',contact:'9898765432',created_at:'2026-10-13 08:15:00'}
-            ],
-            requests:[
-                {request_id:101,requested_by:3,username:'doctor',blood_group:'O+',units_requested:2,status:'Accepted',request_date:'2026-10-11 13:20:00'},
-                {request_id:102,requested_by:3,username:'doctor',blood_group:'A-',units_requested:1,status:'Pending',request_date:'2026-10-12 15:40:00'},
-                {request_id:103,requested_by:3,username:'doctor',blood_group:'B+',units_requested:3,status:'Accepted',request_date:'2026-10-12 18:05:00'},
-                {request_id:104,requested_by:3,username:'doctor',blood_group:'O-',units_requested:2,status:'Pending',request_date:'2026-10-13 09:10:00'},
-                {request_id:105,requested_by:3,username:'doctor',blood_group:'AB-',units_requested:4,status:'Rejected',request_date:'2026-10-10 11:00:00'}
-            ],
-            session:null
-        };
+        if (raw) {
+            try { s = JSON.parse(raw); } catch(e){}
+        }
+        if (!s || typeof s !== 'object') {
+            s = {};
+        }
+        if (!Array.isArray(s.users) || s.users.length === 0) s.users = defaultUsers;
+        if (!s.inventory || typeof s.inventory !== 'object') s.inventory = defaultInventory;
+        if (!Array.isArray(s.donors)) s.donors = defaultDonors;
+        if (!Array.isArray(s.requests)) s.requests = defaultRequests;
+        if (!('session' in s)) s.session = null;
+
         localStorage.setItem('bbms_data', JSON.stringify(s));
         return s;
     },
@@ -137,7 +147,8 @@ const BBMS = {
 
         if (action === 'login') {
             const u = (payload.username||'').trim(), p = payload.password||'';
-            const f = s.users.find(x => x.username.toLowerCase()===u.toLowerCase() && x.password===p);
+            const users = Array.isArray(s.users) ? s.users : [];
+            const f = users.find(x => x.username.toLowerCase()===u.toLowerCase() && x.password===p);
             if (!f) return {ok:false, error:'Invalid username or password.'};
             s.session = {user_id:f.user_id, username:f.username, role:f.role};
             this.save(s);
@@ -161,19 +172,24 @@ const BBMS = {
         if (action === 'data') {
             const role = s.session ? s.session.role : 'Admin';
             const uid = s.session ? s.session.user_id : 1;
-            const totalStock = Object.values(s.inventory).reduce((a,b)=>a+b,0);
-            const reqs = role==='Medical Staff' ? s.requests.filter(r=>r.requested_by===uid) : s.requests;
+            const inventory = s.inventory || {};
+            const totalStock = Object.values(inventory).reduce((a,b)=>a+b,0);
+            const allReqs = Array.isArray(s.requests) ? s.requests : [];
+            const reqs = role==='Medical Staff' ? allReqs.filter(r=>r.requested_by===uid) : allReqs;
             const counts = {All:reqs.length,Pending:0,Accepted:0,Rejected:0,Cancelled:0};
             reqs.forEach(r => { if (counts[r.status]!==undefined) counts[r.status]++; });
+            const allDonors = Array.isArray(s.donors) ? s.donors : [];
+            const allUsers = Array.isArray(s.users) ? s.users : [];
             return {ok:true, user:s.session,
-                stats:{total_donors:s.donors.length,total_stock:totalStock,today_donations:2,total_users:s.users.length,counts},
-                inventory:s.inventory,
+                stats:{total_donors:allDonors.length,total_stock:totalStock,today_donations:2,total_users:allUsers.length,counts},
+                inventory:inventory,
                 requests:[...reqs].sort((a,b)=>b.request_id-a.request_id),
-                donors:[...s.donors].sort((a,b)=>b.donor_id-a.donor_id),
-                users:s.users
+                donors:[...allDonors].sort((a,b)=>b.donor_id-a.donor_id),
+                users:allUsers
             };
         }
         if (action === 'add_user') {
+            if (!Array.isArray(s.users)) s.users = [];
             const u=(payload.username||'').trim(), p=payload.password||'', r=payload.role||'';
             if (u.length<3||p.length<4||!['Admin','Staff','Medical Staff'].includes(r))
                 return {ok:false,error:'Provide valid username (3+), password (4+), and role.'};
@@ -185,6 +201,7 @@ const BBMS = {
             return {ok:true,message:`User '${u}' (${r}) created.`};
         }
         if (action === 'delete_user') {
+            if (!Array.isArray(s.users)) s.users = [];
             const id = Number(payload.user_id);
             if (s.session && id===s.session.user_id) return {ok:false,error:'Cannot delete your own account.'};
             s.users = s.users.filter(u=>u.user_id!==id);
@@ -269,6 +286,7 @@ const BBMS = {
             if (el('navAvatar'))  el('navAvatar').textContent = (res.user.username||'U').slice(0,2).toUpperCase();
         }
         return res;
+    }
 };
 
 // Backward compatibility alias
