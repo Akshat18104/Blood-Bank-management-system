@@ -20,28 +20,19 @@ function formatDate(d) {
         + ' · ' + dt.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
-/* ── Theme ──────────────────────────────────────────────────── */
+/* ── Theme (Locked to Dark Mode) ────────────────────────────── */
 (function(){
-    const t = localStorage.getItem('bbms_theme') || localStorage.getItem('ibbms_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.setAttribute('data-theme', 'dark');
+    try {
+        localStorage.setItem('bbms_theme', 'dark');
+    } catch(e){}
 })();
 
 function toggleTheme() {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('bbms_theme', next);
-    updateThemeIcons();
+    document.documentElement.setAttribute('data-theme', 'dark');
 }
 
-function updateThemeIcons() {
-    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-    document.querySelectorAll('.theme-btn').forEach(b => {
-        b.title = dark ? 'Light mode' : 'Dark mode';
-        b.innerHTML = dark
-            ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-            : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-    });
-}
+function updateThemeIcons() {}
 
 /* ── Toasts ─────────────────────────────────────────────────── */
 function showAlert(msg, type = 'info') {

@@ -149,10 +149,11 @@ $conn->commit();
 - `esc(s)`: Sanitizes strings to escape `&`, `<`, `>`, `"`, and `'` to protect against Cross-Site Scripting (XSS).
 - `formatDate(d)`: Parses SQL timestamp formats and outputs human-friendly localized dates (e.g., `Oct 14, 2026 · 02:45 PM`).
 
-### 2. Dark / Light Theme Controller
-- Checks `localStorage` key `bbms_theme` (with fallback to `ibbms_theme`).
-- Applies `data-theme="dark"` or `data-theme="light"` to the `<html>` root element.
-- `toggleTheme()`: Flips theme attribute and dynamically swaps SVG sun/moon icons on all `.theme-btn` elements.
+### 2. Permanent Dark Theme Configuration
+- The system is permanently configured in **Dark Mode**.
+- `:root` in `assets/styles.css` defaults directly to the dark theme palette (`--bg: #0F1117`, `--surface: #1A1D2B`, `--border: #2D3348`, `--text: #E2E8F0`).
+- `assets/app.js` enforces `data-theme="dark"` on `document.documentElement` on load.
+- Dynamic theme toggle buttons have been removed from the navigation headers to preserve a clean, consistent interface.
 
 ### 3. Toast Notifications & Confirmation Modals
 - `showAlert(msg, type)`: Spawns animated floating notification banners (`toast-success`, `toast-error`, `toast-info`) in `.toast-container` with auto-dismiss after 4 seconds.
