@@ -292,7 +292,6 @@ img { max-width: 100%; }
     border-radius: var(--radius);
     padding: 1.15rem 1.25rem;
     box-shadow: var(--shadow-sm);
-    transition: transform .15s, box-shadow .15s;
     position: relative;
     overflow: hidden;
 }
@@ -304,7 +303,6 @@ img { max-width: 100%; }
 .stat-card.green::before  { background: var(--green); }
 .stat-card.amber::before  { background: var(--amber); }
 .stat-card.blue::before   { background: var(--blue); }
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .stat-card .stat-label {
     font-size: .75rem; font-weight: 600; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: .04em;
@@ -354,9 +352,7 @@ img { max-width: 100%; }
     border-radius: var(--radius);
     padding: 1rem;
     text-align: center;
-    transition: all .15s;
 }
-.blood-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .blood-item .group-name {
     font-size: 1.25rem; font-weight: 800; color: var(--crimson);
     margin-bottom: .15rem;
