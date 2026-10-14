@@ -141,29 +141,32 @@
 
     <script src="../assets/app.js"></script>
     <script>
+        // Main function: Fetches dashboard data and renders counters, tables, and inventory grid
         async function loadDashboard() {
             const data = await BBMS.loadShell('Admin');
             if (!data) return;
 
-            // Stats row
+            // Compute summary statistics
             const totalStock = Object.values(data.inventory || {}).reduce((a, b) => a + b, 0);
             const pendingCount = (data.requests || []).filter(r => r.status === 'Pending').length;
 
+            // Populate top stat cards
             document.getElementById('statDonors').textContent = data.donors ? data.donors.length : 0;
             document.getElementById('statStock').textContent = totalStock;
             document.getElementById('statPending').textContent = pendingCount;
             document.getElementById('statUsers').textContent = data.users ? data.users.length : 0;
 
-            // Render Blood Grid
+            // Render live blood inventory cards
             renderBloodGrid(data.inventory || {});
 
-            // Render Recent Requests (first 5)
+            // Render recent blood requests (latest 5)
             renderRecentRequests(data.requests || []);
 
-            // Render Recent Donors (first 5)
+            // Render recent donors (latest 5)
             renderRecentDonors(data.donors || []);
         }
 
+        // Renders the 8 blood group cards with visual warning tags (Critical / Low Stock / Adequate)
         function renderBloodGrid(inventory) {
             const container = document.getElementById('bloodGrid');
             container.innerHTML = BLOOD_GROUPS.map(group => {
@@ -182,6 +185,7 @@
             }).join('');
         }
 
+        // Populates the Recent Blood Requests table
         function renderRecentRequests(requests) {
             const tbody = document.getElementById('recentRequestsBody');
             const recent = requests.slice(0, 5);
@@ -213,6 +217,7 @@
             }).join('');
         }
 
+        // Populates the Recent Donors table
         function renderRecentDonors(donors) {
             const tbody = document.getElementById('recentDonorsBody');
             const recent = donors.slice(0, 5);
@@ -231,6 +236,7 @@
             `).join('');
         }
 
+        // Handles approval of a pending blood request with confirmation dialog
         function approveRequest(requestId) {
             confirmModal({
                 title: 'Approve Blood Request',
@@ -241,7 +247,7 @@
                     const res = await BBMS.call('handle_request', { request_id: requestId, decision: 'accept' });
                     if (res.ok) {
                         showAlert(res.message || 'Request approved successfully.', 'success');
-                        await loadDashboard();
+                        await loadDashboard(); // refresh dashboard data
                     } else {
                         showAlert(res.error || 'Failed to approve request.', 'danger');
                     }

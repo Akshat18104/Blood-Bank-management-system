@@ -62,6 +62,7 @@
 
 <script src="assets/app.js"></script>
 <script>
+// Helper: Displays an error or success alert box above the form
 function showLoginAlert(msg, type) {
     const box = document.getElementById('alertBox');
     box.className = 'alert alert-' + type;
@@ -69,6 +70,7 @@ function showLoginAlert(msg, type) {
     box.style.display = 'block';
 }
 
+// Quick-fill helper: Fills in credentials when clicking the demo role buttons
 function fillRole(user, pass, btn) {
     document.getElementById('username').value = user;
     document.getElementById('password').value = pass;
@@ -77,24 +79,34 @@ function fillRole(user, pass, btn) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if redirected with a URL parameter (e.g. after logout or unauthorized access)
     const params = new URLSearchParams(location.search);
     if (params.get('msg') === 'logged_out') showLoginAlert('Signed out successfully.', 'success');
     if (params.get('error') === 'unauthorized') showLoginAlert('Please sign in first.', 'error');
 
+    // Handle login form submission
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const u = document.getElementById('username').value.trim();
         const p = document.getElementById('password').value;
-        if (!u || !p) { showLoginAlert('Enter both username and password.', 'error'); return; }
+        if (!u || !p) {
+            showLoginAlert('Enter both username and password.', 'error');
+            return;
+        }
 
         const btn = document.getElementById('loginBtn');
-        btn.disabled = true; btn.textContent = 'Signing in...';
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
 
+        // Send login credentials to backend API
         const res = await BBMS.call('login', { username: u, password: p });
         if (res.ok && res.redirect) {
+            // Redirect to role dashboard on success
             location.href = res.redirect;
         } else {
-            btn.disabled = false; btn.textContent = 'Sign In';
+            // Display error message on invalid credentials
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
             showLoginAlert(res.error || 'Login failed.', 'error');
         }
     });
