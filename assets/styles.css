@@ -173,13 +173,17 @@ img { max-width: 100%; }
     transition: all .15s; text-decoration: none; white-space: nowrap;
 }
 .btn-primary {
-    background: var(--crimson); color: #fff; border-color: var(--crimson);
+    background: var(--blue); color: #fff; border-color: var(--blue);
 }
-.btn-primary:hover { background: var(--crimson-dark); }
+.btn-primary:hover { background: #1D4ED8; border-color: #1D4ED8; }
+.btn-blue {
+    background: var(--blue); color: #fff; border-color: var(--blue);
+}
+.btn-blue:hover { background: #1D4ED8; border-color: #1D4ED8; }
 .btn-secondary {
     background: var(--surface-alt); color: var(--text); border-color: var(--border);
 }
-.btn-secondary:hover { border-color: var(--crimson); color: var(--crimson); }
+.btn-secondary:hover { border-color: var(--blue); color: var(--blue); }
 .btn-success { background: var(--green); color: #fff; border-color: var(--green); }
 .btn-success:hover { background: #15803D; }
 .btn-danger { background: var(--crimson); color: #fff; }
