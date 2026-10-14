@@ -152,11 +152,9 @@ async function initDashboard() {
     // 2. Render Blood Grid
     const bloodGrid = document.getElementById('bloodGrid');
     const bloodGroups = BLOOD_GROUPS || ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
-    const maxCapacity = 30; // Scale percentage for meter fill
 
     bloodGrid.innerHTML = bloodGroups.map(bg => {
         const units = inventory[bg] != null ? inventory[bg] : 0;
-        const pct = Math.min(100, Math.round((units / maxCapacity) * 100));
         let levelClass = '';
         if (units <= 2) {
             levelClass = 'critical';
@@ -169,9 +167,6 @@ async function initDashboard() {
                 <div class="group-name">${esc(bg)}</div>
                 <div class="group-units">${units} <span style="font-size:.78rem;font-weight:500;color:var(--text-muted)">units</span></div>
                 <div class="group-label">ABO/Rh Reserve</div>
-                <div class="meter">
-                    <div class="meter-fill" style="width: ${pct}%"></div>
-                </div>
                 <a href="log_donation.html">+ Log Unit</a>
             </div>
         `;

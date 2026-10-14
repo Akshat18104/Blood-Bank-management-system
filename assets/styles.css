@@ -368,18 +368,9 @@ img { max-width: 100%; }
 .blood-item .group-label {
     font-size: .7rem; font-weight: 600; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: .04em;
-}
-.blood-item .meter {
-    width: 100%; height: 5px; background: var(--border);
-    border-radius: 999px; margin-top: .5rem; overflow: hidden;
-}
-.blood-item .meter-fill {
-    height: 100%; border-radius: 999px;
-    background: var(--green); transition: width .3s;
-}
-.blood-item.low .meter-fill  { background: var(--amber); }
-.blood-item.critical .meter-fill, .blood-item.critical .group-name { color: var(--crimson); }
-.blood-item.critical .meter-fill { background: var(--crimson); }
+.blood-item.low { border-color: rgba(217, 119, 6, 0.4); }
+.blood-item.critical { border-color: rgba(225, 29, 72, 0.4); }
+.blood-item.critical .group-name { color: var(--crimson); }
 .blood-item a {
     display: inline-block; margin-top: .5rem; font-size: .72rem;
     font-weight: 600; color: var(--crimson);

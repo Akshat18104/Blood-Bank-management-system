@@ -70,7 +70,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
                     Blood Inventory Levels
                 </h3>
-                <span style="font-size:.78rem;color:var(--text-muted)">Target capacity: 25 units/group</span>
+                <span style="font-size:.78rem;color:var(--text-muted)">Live Inventory Status</span>
             </div>
             <div class="card-body">
                 <div class="blood-grid" id="bloodGrid">
@@ -174,16 +174,11 @@
                 if (units === 0) statusClass = 'critical';
                 else if (units <= 5) statusClass = 'low';
 
-                const pct = Math.min(100, Math.round((units / 25) * 100));
-
                 return `
                     <div class="blood-item ${statusClass}">
                         <div class="group-name">${esc(group)}</div>
                         <div class="group-units">${units} <span style="font-size:.85rem;font-weight:600">units</span></div>
                         <div class="group-label">${units === 0 ? 'Critical (0 units)' : units <= 5 ? 'Low Stock' : 'Adequate'}</div>
-                        <div class="meter">
-                            <div class="meter-fill" style="width: ${pct}%"></div>
-                        </div>
                     </div>
                 `;
             }).join('');
